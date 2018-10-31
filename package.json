@@ -1,0 +1,21 @@
+{
+  "name": "greg_gadin_barstool_challenge",
+  "version": "1.0.0",
+  "description": "NodeJS Server written with Express and a MongoDB backend",
+  "main": "src/server.js",
+  "author": "FURams09 <padin.greg@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.1.2",
+    "@babel/preset-env": "^7.1.0",
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "mongoose": "^5.3.8"
+  },
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "start": "yarn build && node dist/server.js"
+  }
+}
