@@ -5,6 +5,7 @@ import BodyParser from "body-parser";
 // Database
 import mongoose from "mongoose";
 import axios from "axios";
+import Game from "./db/game";
 
 // Initialize Database connection
 const DATABASE_NAME = "Barstool";
@@ -39,9 +40,73 @@ mongoose
       // break out by team, game details, innings
       // Make sure everything gets a modified and createdAt and feedId for checking if a save needs to be made.
       const feedRequests = feeds.map(feed => {
-        return axios.get(feed).then(({ data }) => {
-          console.log(data);
-        });
+        return axios
+          .get(feed)
+          .then(({ data }) => {
+            const game = data.game || data; // if the response has a game object we want to extract just the game data
+            if (game) {
+              const homeInnings = game.homeTeamDetails.map(inning => {
+                const { number, sequence, runs, hits, errors, type } = inning;
+                return {
+                  number,
+                  sequence,
+                  runs,
+                  hits,
+                  errs: errors,
+                  type
+                };
+              });
+              const awayInnings = game.homeTeamDetails.map(inning => {
+                const { number, sequence, runs, hits, errors, type } = inning;
+
+                return {
+                  number,
+                  sequence,
+                  runs,
+                  hits,
+                  errs: errors,
+                  periodType: type
+                };
+              });
+              console.log(`AWAY INNINGS`, awayInnings);
+              const newGame = new Game({
+                homeTeam: {},
+                awayTeam: {},
+                status: game.status,
+                currentPeriod: game.currentPeriod,
+                curerntPeriodHalf: game.currentPeriodHalf,
+                isPeriodOver: !(game.isPeriodOver === ""),
+                homeInnings: [],
+                awayInnings: [],
+                league: {
+                  alias: game.league.alias,
+                  name: game.league.name
+                }
+              });
+
+              Game.find({ feedId: game.feedId })
+                .then(results => {
+                  if (results.length === 0) {
+                    newGame
+                      .save()
+                      .then(results => {
+                        res.send(results);
+                      })
+                      .catch(ex => {
+                        console.log(ex);
+                      });
+                  }
+                })
+                .catch(ex => {
+                  console.log(ex);
+                });
+            } else {
+              console.log(`game data not found`);
+            }
+          })
+          .catch(ex => {
+            console.log(ex);
+          });
       });
       Promise.all(feedRequests).then(responses => {
         res.send(`all feeds updated`);
@@ -51,11 +116,7 @@ mongoose
     // gets the list of all games
     // send back to the main page as a list of games available, probably with the scores
     app.get(`/games`, (req, res) => {
-      const sch = new mongoose.Schema({});
-      const mod = mongoose.model("TEAM");
-      const testMod = new mod({ team: "Yankees" });
-      testMod.save();
-      res.send(testMod);
+      res.send();
     });
 
     // get the game from mongoose for a given objectID;
