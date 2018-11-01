@@ -4,6 +4,7 @@ import BodyParser from "body-parser";
 
 // Database
 import mongoose from "mongoose";
+import axios from "axios";
 
 // Initialize Database connection
 const DATABASE_NAME = "Barstool";
@@ -37,6 +38,14 @@ mongoose
       // make sure to index feedId in Mongoose
       // break out by team, game details, innings
       // Make sure everything gets a modified and createdAt and feedId for checking if a save needs to be made.
+      const feedRequests = feeds.map(feed => {
+        return axios.get(feed).then(({ data }) => {
+          console.log(data);
+        });
+      });
+      Promise.all(feedRequests).then(responses => {
+        res.send(`all feeds updated`);
+      });
     });
 
     // gets the list of all games
