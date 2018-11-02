@@ -6,9 +6,6 @@
   "author": "FURams09 <padin.greg@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@babel/cli": "^7.1.2",
-    "@babel/core": "^7.1.2",
-    "@babel/preset-env": "^7.1.0",
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
@@ -16,6 +13,6 @@
   },
   "scripts": {
     "build": "babel src --out-dir dist",
-    "start": "yarn build && node dist/server.js"
+    "start": "nodemon src/server.js"
   }
 }

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const Period = {
   number: Number,
@@ -6,7 +6,7 @@ const Period = {
   runs: Number,
   hits: Number,
   errs: Number,
-  type: String
+  periodType: String
 };
 
 const Team = {
@@ -14,8 +14,7 @@ const Team = {
   market: String,
   name: String,
   teamColor: String,
-  textColor: String,
-  league: { type: mongoose.SchemaTypes.ObjectId, ref: "League" }
+  textColor: String
 };
 
 const League = {
@@ -24,7 +23,7 @@ const League = {
 };
 
 const GameSchema = new mongoose.Schema({
-  feedId: String,
+  url: String,
   modifiedAt: Date,
   homeTeam: Team,
   awayTeam: Team,
@@ -34,7 +33,9 @@ const GameSchema = new mongoose.Schema({
   isPeriodOver: Boolean,
   homeInnings: [Period],
   awayInnings: [Period],
+  homeTeamFinal: Number,
+  awayTeamFinal: Number,
   league: League
 });
 
-export default mongoose.model("Game", GameSchema);
+module.exports = mongoose.model("Game", GameSchema);
