@@ -1,14 +1,5 @@
 const mongoose = require("mongoose");
 
-const Period = {
-  number: Number,
-  sequence: Number,
-  runs: Number,
-  hits: Number,
-  errs: Number,
-  periodType: String
-};
-
 const Team = {
   abbr: String,
   market: String,
@@ -22,6 +13,12 @@ const League = {
   name: String
 };
 
+const Inning = new mongoose.Schema({
+  runs: Number,
+  hits: Number,
+  errs: Number
+});
+
 const GameSchema = new mongoose.Schema({
   url: String,
   modifiedAt: Date,
@@ -29,12 +26,11 @@ const GameSchema = new mongoose.Schema({
   awayTeam: Team,
   status: String,
   currentPeriod: Number,
-  curerntPeriodHalf: String,
+  currentPeriodHalf: String,
   isPeriodOver: Boolean,
-  homeInnings: [Period],
-  awayInnings: [Period],
-  homeTeamFinal: Number,
-  awayTeamFinal: Number,
+  innings: [[Inning]],
+  finalKeys: [String],
+  finals: [[Number]],
   league: League
 });
 

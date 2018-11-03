@@ -1,6 +1,8 @@
 // HTTP Server
 const express = require("express");
+const cors = require("cors");
 const BodyParser = require("body-parser");
+const morgan = require("morgan");
 
 // Database
 const mongoose = require("mongoose");
@@ -11,7 +13,7 @@ const DATABASE_NAME = "Barstool";
 const MONGO_URI = `mongodb://localhost:27017/${DATABASE_NAME}`;
 
 const { RefreshAllData } = require("./utility");
-const REFRESH_DATA_ON_LOAD = true;
+const REFRESH_DATA_ON_LOAD = false;
 mongoose
   .connect(
     MONGO_URI,
@@ -23,8 +25,9 @@ mongoose
 
     const app = express();
     const PORT = "8008";
-
+    app.use(cors("http://localhost:3000"));
     app.use(BodyParser.json());
+    app.use(morgan("tiny"));
 
     app.get("/", (req, res) => {
       res.send(`Viva La Stool!`);

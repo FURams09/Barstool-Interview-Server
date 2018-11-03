@@ -12,11 +12,63 @@ const processTeam = feedTeam => {
   };
 };
 
-const processInnings = innings => {
-  return innings.map(inning => {
-    const { number, sequence, runs, hits, errors, type } = inning;
-    return { number, sequence, runs, hits, errs: errors, periodType: type };
+/**
+ * Pass an array of a teams period from a game and return the game totals for those stats
+ * @param {array} innings An array of a game period object used to aggregate some stat.
+ * @param {array} keys  Keys from the individual game period you want to aggregate
+ * @returns an array of the sums orderd by the keys passed
+ */
+const gameTotal = (innings, keys) => {
+  let startingTotals = new Array(keys.length);
+  startingTotals.fill(0);
+
+  return innings.reduce((total, inning) => {
+    keys.forEach((key, i) => {
+      total[i] += Number(inning[key]);
+    });
+    return total;
+  }, startingTotals);
+};
+const processInnings = (away, home) => {
+  // pop through the awayInnings and find corresponding homeInnings.
+  // then if any home innings are left add them and then sort the innings by period
+
+  // each inning is represented as an array with the away team in index 0 and the home team in index 1,
+  // should pass the number of runs, hits, and errors in that inning.
+  // if an inning is missing it will be represented by an empty array.
+
+  // we loop the away innings since in any sport besides baseball there should be a corresponding
+  // home period for every away period, but in baseball you could have the top of an inning where there's an away without
+  // a corresponding home necessarily.
+
+  if (away.length - 1 > home.length || home.length > away.length) {
+    // should never have more than one more away inning than home inning
+    // should never have more home innings than away innings
+  }
+  away.sort((inning, nextInning) => {
+    return inning.period - nextInning.period;
   });
+  home.sort((inning, nextInning) => {
+    return inning.period - nextInning.period;
+  });
+
+  let gameInnings = [];
+
+  away.forEach((awayInning, i) => {
+    if (i >= home.length) {
+      gameInnings.push([...awayInning, {}]); // the last half inning of a game.
+    }
+    let homeInning = home[i];
+    if (homeInning.period === awayInning.period) {
+      gameInnings.push([
+        Object.assign({ errs: awayInning.errors }, awayInning),
+        Object.assign({ errs: homeInning.errors }, homeInning)
+      ]);
+    }
+  });
+  let [homeHits, homeErrors] = gameTotal(home, ["hits", "errors"]);
+  let [awayHits, awayErrors] = gameTotal(away, ["hits", "errors"]);
+  return [homeHits, homeErrors, awayHits, awayErrors, gameInnings];
 };
 
 const feeds = [
@@ -29,9 +81,7 @@ const feeds = [
  */
 exports.RefreshAllData = async () => {
   // if there isn't a game object, the data is the game object
-  if (mongoose.connection.db.listCollections({ name: "Game" })) {
-    await Game.collection.drop();
-  }
+  await Game.deleteMany({});
 
   const feedUpdates = feeds.map(async feed => {
     return refreshData(feed);
@@ -67,22 +117,31 @@ const refreshData = async feed => {
     let homeTeam = processTeam(game.homeTeam);
     let awayTeam = processTeam(game.awayTeam);
 
-    let homeTeamInnings = processInnings(game.homeTeamDetails);
-    let awayTeamInnings = processInnings(game.awayTeamDetails);
-
-    let newGame = new Game({
+    let [
+      homeTeamHits,
+      homeTeamErrs,
+      awayTeamHits,
+      awayTeamErrs,
+      innings
+    ] = processInnings(game.awayTeamDetails, game.homeTeamDetails);
+    const finalKeys = ["R", "H", "E"];
+    const finals = [
+      [game.awayTeamFinal, awayTeamHits, awayTeamErrs],
+      [game.homeTeamFinal, homeTeamHits, homeTeamErrs]
+    ];
+    console.log;
+    const newGame = new Game({
       url: feed,
       modifiedAd: game.modifiedAd,
       homeTeam,
       awayTeam,
       status: game.status,
       currentPeriod: game.currentPeriod,
-      curerntPeriodHalf: game.currentPeriodHalf,
+      currentPeriodHalf: game.currentPeriodHalf,
       isPeriodOver: !(game.isPeriodOver === ""),
-      homeInnings: homeTeamInnings,
-      awayInnings: awayTeamInnings,
-      homeTeamFinal: game.homeTeamFinal,
-      awayTeamFinal: game.awayTeamFinal,
+      innings,
+      finalKeys,
+      finals,
       league: {
         alias: game.league.alias,
         name: game.league.name
