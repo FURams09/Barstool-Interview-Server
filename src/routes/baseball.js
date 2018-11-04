@@ -2,6 +2,8 @@ const express = require(`express`)
 const router = express.Router()
 
 const Logger = require(`../logger`)
+const { RefreshData, GetGameFeed } = require(`../utility`)
+
 const BaseballGame = require(`../db/baseball-game`)
 
 /**
@@ -13,7 +15,7 @@ router.get(`/`, async (req, res) => {
     return Logger.log(ex)
   })
   if (games.error) {
-    res.status(500).send(games.error)
+    res.status(500).send(games)
     return
   }
   res.send(games)
@@ -23,17 +25,28 @@ router.get(`/`, async (req, res) => {
  * takes a mongoDB _id for a baseball game and returns that game
  */
 router.get(`/:_id`, async (req, res) => {
-  let gameFromDb = await BaseballGame.findById(req.params._id).catch(ex => {
+  let gameData = await BaseballGame.findById(req.params._id).catch(ex => {
     return Logger.log(ex)
   })
-  if (!gameFromDb) {
-    gameFromDb = Logger.log(`Game ${req.params._id} not found;`)
+  if (!gameData) {
+    gameData = Logger.log(`Game ${req.params._id} not found;`)
   }
-  if (gameFromDb.error) {
-    res.status(500).send(gameFromDb.error)
+  if (gameData.error) {
+    res.send(gameData)
     return
   }
-  res.send(gameFromDb)
+
+  let game = await GetGameFeed(gameData.url)
+
+  if (game.error) {
+    gameData = game
+  } else if (game.modifiedAt > gameData.modifiedAt) {
+    gameData = await RefreshData(game, gameData.url)
+  }
+
+  res.send(gameData)
+
+  // if there isn't a game object, the data is the game object
 })
 
 module.exports = router

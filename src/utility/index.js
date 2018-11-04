@@ -7,6 +7,25 @@ const feeds = [
   `https://2ncp9is1k8.execute-api.us-east-1.amazonaws.com/dev/feed/game/one`,
   `https://2ncp9is1k8.execute-api.us-east-1.amazonaws.com/dev/feed/game/two`
 ]
+
+const getGameFeed = async feedURL => {
+  let feedFromSource = await axios.get(feedURL).catch(ex => {
+    return Logger.log(ex)
+  })
+  if (feedFromSource.error) {
+    return feedFromSource.error
+  }
+  // if there isn't a game object, the data is the game object
+  let game = feedFromSource.data.game || feedFromSource.data
+  if (game) {
+    return game
+  } else {
+    return Logger.log(`game data not found`)
+  }
+}
+
+exports.GetGameFeed = getGameFeed
+
 /**
  * Returns true if all feeds were successfully processed and saved to Mongoose
  * Returns false if any of the updates fail. Successful updates will not be rolled back.
@@ -17,7 +36,13 @@ exports.RefreshAllData = async () => {
   await BaseballGame.deleteMany({})
 
   const feedUpdates = feeds.map(async feed => {
-    return refreshData(feed)
+    // if there isn't a game object, the data is the game object
+    let game = await getGameFeed(feed)
+    if (game) {
+      return refreshData(game, feed)
+    } else {
+      return Logger.log(`game data not found`)
+    }
   })
 
   let feedResults = await Promise.all(feedUpdates)
@@ -36,38 +61,25 @@ exports.RefreshAllData = async () => {
  * @returns {object} either an object representing a game or an object with key "error"
  * and a body with error details
  */
-const refreshData = async feed => {
-  let feedFromSource = await axios.get(feed).catch(ex => {
-    return Logger.log(ex)
-  })
-  if (feedFromSource.error) {
-    return feedFromSource
+const refreshData = async (game, feed) => {
+  let saveResults
+  switch (game.league.alias) {
+    case `MLB`:
+      saveResults = await SaveBaseballGame(game, feed).catch(ex =>
+        Logger.log(ex)
+      )
+      break
+    case `NFL`:
+      // This is the general workflow for processing different sports' feeds
+      // saveResults = await saveFootballGame(game).catch(ex=> {
+      //  Logger.log(ex);
+      // })
+      break
+    default:
+      saveResults = Logger.log(`League not found for feed ${feed}`)
+      break
   }
-
-  // if there isn't a game object, the data is the game object
-  let game = feedFromSource.data.game || feedFromSource.data
-  if (game) {
-    let saveResults
-    switch (game.league.alias) {
-      case `MLB`:
-        saveResults = await SaveBaseballGame(game, feed).catch(ex =>
-          Logger.log(ex)
-        )
-        break
-      case `NFL`:
-        // This is the general workflow for processing different sports' feeds
-        // saveResults = await saveFootballGame(game).catch(ex=> {
-        //  Logger.log(ex);
-        // })
-        break
-      default:
-        saveResults = Logger.log(`League not found for feed ${feed}`)
-        break
-    }
-    return saveResults
-  } else {
-    return Logger.log(`game data not found`)
-  }
+  return saveResults
 }
 
 exports.RefreshData = refreshData
