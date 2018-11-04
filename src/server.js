@@ -1,79 +1,67 @@
 // HTTP Server
-const express = require("express");
-const cors = require("cors");
-const BodyParser = require("body-parser");
-const morgan = require("morgan");
+const express = require(`express`)
+const BodyParser = require(`body-parser`)
+const morgan = require(`morgan`)
+const BaseballRoutes = require(`./routes/baseball`)
+
+// Logging
+const Logger = require(`./logger`)
 
 // Database
-const mongoose = require("mongoose");
-const Game = require("./db/game");
+const mongoose = require(`mongoose`)
 
-// Initialize Database connection
-const DATABASE_NAME = "Barstool";
-const MONGO_URI = `mongodb://localhost:27017/${DATABASE_NAME}`;
+require(`dotenv`).config()
+const { RefreshAllData } = require(`./utility`)
 
-const { RefreshAllData } = require("./utility");
-const REFRESH_DATA_ON_LOAD = false;
-mongoose
-  .connect(
-    MONGO_URI,
-    { useNewUrlParser: true }
-  )
-  .then(() => {
-    // For simplicity used console.log for messaging
-    console.log(`Mongoose connected to MongoDB @ ${MONGO_URI}`);
+const startServer = () => {
+  const app = express()
 
-    const app = express();
-    const PORT = "8008";
-    app.use(cors("http://localhost:3000"));
-    app.use(BodyParser.json());
-    app.use(morgan("tiny"));
+  app.use(BodyParser.json())
+  app.use(morgan(`tiny`))
 
-    app.get("/", (req, res) => {
-      res.send(`Viva La Stool!`);
-    });
-
-    // gets the list of all games
-    // send back to the main page as a list of games available, probably with the scores
-    app.get(`/games`, (req, res) => {
-      Game.find({})
-        .then(results => {
-          res.send(results);
-        })
-        .catch(ex => {
-          res.statusCode(500).send(ex);
-        });
-    });
-
-    app.get(`/game/:_id`, async (req, res) => {
-      const gameFromDb = await Game.findById(req.params._id);
-      res.send(gameFromDb);
-    });
-
-    app.listen(PORT, async () => {
-      console.log(`Listening on Port ${PORT}`);
-      if (REFRESH_DATA_ON_LOAD) {
-        console.log(`Refreshing Feed Data`);
-        RefreshAllData()
-          .then(didUpdate => {
-            if (didUpdate) {
-              console.log(`All Feeds Refreshed`);
-            } else {
-              throw new Error(`See Utility Error Logs`);
-            }
-          })
-          .catch(ex => {
-            console.log(ex);
-            console.log(
-              `Error Refreshing all data. See logs for more details. ${ex}}`
-            );
-          });
-      }
-    });
+  // test route
+  app.get(`/`, (req, res) => {
+    res.send(`Viva La Stool!`)
   })
-  .catch(err => {
-    // this catches all errors not just connection ones for the time being. Should refactor that out.
-    console.log(
-      `Error connecting to MongoDB ${DATABASE_NAME} @ ${MONGO_URI}.\n${err}`
-    );
-  });
+
+  // baseball
+  app.use(`/games`, BaseballRoutes)
+
+  app.listen(process.env.PORT, async () => {
+    if (process.env.REFRESH_DATA_ON_LOAD === `true`) {
+      console.log(`Refreshing feed data`)
+      const didUpdate = await RefreshAllData().catch(ex => {
+        return Logger.log(ex)
+      })
+      if (didUpdate && !didUpdate.error) {
+        console.log(`All feeds refreshed`)
+      } else {
+        console.log(`Error refreshing all feeds. See logs for more details.`)
+      }
+    } else {
+      console.log(`Skipping DataRefresh`)
+    }
+    console.log(`Listening on Port ${process.env.PORT}`)
+  })
+}
+
+// Connect to Mongo server and start listening for requests
+if (!process.env.MONGO_URI) {
+  console.error(`No MongoDB configured for server`)
+} else {
+  mongoose
+    .connect(
+      process.env.MONGO_URI,
+      { useNewUrlParser: true }
+    )
+    .then(() => {
+      console.log(`Mongoose connected to MongoDB @ ${process.env.MONGO_URI}`)
+      startServer()
+    })
+    .catch(err => {
+      // this catches all errors not just connection ones for the time being. Should refactor that out.
+      console.log(
+        `Error connecting to MongoDB ${process.env.MONGO_URI}.\n${err}`
+      )
+    })
+}

@@ -1,25 +1,19 @@
-const mongoose = require("mongoose");
-
-const Team = {
-  abbr: String,
-  market: String,
-  name: String,
-  teamColor: String,
-  textColor: String
-};
+// Global SubDocuments
+const mongoose = require(`mongoose`)
+const Team = mongoose.Schema({
+  abbr: { type: String, default: `N/A` },
+  market: { type: String, default: `N/A` },
+  name: { type: String, default: `N/A` },
+  teamColor: { type: String, default: `FFFFFF` },
+  textColor: { type: String, default: `000000` }
+})
 
 const League = {
   alias: String,
   name: String
-};
+}
 
-const Inning = new mongoose.Schema({
-  runs: Number,
-  hits: Number,
-  errs: Number
-});
-
-const GameSchema = new mongoose.Schema({
+const GameSchemaTemplate = {
   url: String,
   modifiedAt: Date,
   homeTeam: Team,
@@ -28,10 +22,10 @@ const GameSchema = new mongoose.Schema({
   currentPeriod: Number,
   currentPeriodHalf: String,
   isPeriodOver: Boolean,
-  innings: [[Inning]],
+  periods: [[]],
   finalKeys: [String],
   finals: [[Number]],
   league: League
-});
+}
 
-module.exports = mongoose.model("Game", GameSchema);
+module.exports = GameSchemaTemplate
