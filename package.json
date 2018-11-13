@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "NodeJS Server written with Express and a MongoDB backend",
   "main": "src/server.js",
-  "author": "FURams09 <padin.greg@gmail.com>",
+  "author": "Greg Padin<padin.greg@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.18.0",
@@ -15,9 +15,8 @@
     "nodemon": "^1.18.5"
   },
   "scripts": {
-    "build": "babel src --out-dir dist",
     "start": "nodemon src/server.js",
-    "lint": "eslint --fix"
+    "lint": "eslint --fix ./src/*.js"
   },
   "devDependencies": {
     "eslint": "^5.8.0",
