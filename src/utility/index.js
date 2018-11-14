@@ -8,6 +8,11 @@ const feeds = [
   `https://2ncp9is1k8.execute-api.us-east-1.amazonaws.com/dev/feed/game/two`
 ]
 
+/**
+* Makes request to a url and processes the response
+* to base game information removing any nesting 
+* above the game in the response object.
+*/
 const getGameFeed = async feedURL => {
   let feedFromSource = await axios.get(feedURL).catch(ex => {
     return Logger.log(ex)
@@ -32,7 +37,7 @@ exports.GetGameFeed = getGameFeed
  */
 exports.RefreshAllData = async () => {
   // Clear out old data when the app starts. In Production it would likely make more sense to just update
-  // existing game data, but with just two feeds representing the same game
+  // existing game data, but with just two static feeds it made more sense to just recreate the data every 
   await BaseballGame.deleteMany({})
 
   const feedUpdates = feeds.map(async feed => {
@@ -58,8 +63,8 @@ exports.RefreshAllData = async () => {
  *
  * @param {string} feed  URL to fetch game data from.
  *
- * @returns {object} either an object representing a game or an object with key "error"
- * and a body with error details
+ * @returns {object} either an object representing a game or a
+ * error object
  */
 const refreshData = async (game, feed) => {
   let saveResults
