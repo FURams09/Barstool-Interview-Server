@@ -1,17 +1,18 @@
 // HTTP Server
 const express = require(`express`)
 const BodyParser = require(`body-parser`)
-const morgan = require(`morgan`)
-const BaseballRoutes = require(`./routes/baseball`)
 
 // Logging
 const Logger = require(`./logger`)
+const morgan = require(`morgan`)
 
 // Database
 const mongoose = require(`mongoose`)
 
-require(`dotenv`).config()
-const { RefreshAllData } = require(`./utility`)
+require(`dotenv`).config() // needed to use variables defined in the .env file
+// Barstool Code
+const BaseballRoutes = require(`./routes/baseball`) // Express Router middleware
+const { RefreshAllData } = require(`./utility`) // Refresh the Mongo database from the list of sources.
 
 const startServer = () => {
   const app = express()
@@ -24,7 +25,7 @@ const startServer = () => {
     res.send(`Viva La Stool!`)
   })
 
-  // baseball
+  // baseball routes
   app.use(`/games`, BaseballRoutes)
 
   app.listen(process.env.PORT, async () => {
