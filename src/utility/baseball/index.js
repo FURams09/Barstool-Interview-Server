@@ -1,11 +1,11 @@
-const Logger = require(`../../logger`)
-const BaseballGame = require(`../../db/baseball-game`)
-const { processTeam, gameTotal } = require(`../game`)
+const Logger = require(`../../logger`) // Common logging utility
+const BaseballGame = require(`../../db/baseball-game`) // Baseball game Mongoose Schema
+const { processTeam, gameTotal } = require(`../game`) // common utilities for processing games in any sport.
 
 /**
- *  Takes in two sets of objects with the teams runs, errors, and hits for each inning
- *  and converts them to an array of combined  "game innings" and sums up the
- *  necessry fields
+ *  Takes in a home and away teams runs, errors, and hits for each inning
+ *  and converts them to an array of combined  "game innings" and totals for each
+ *  statistic.
  *
  *  Adding runs would be trivial but we get the team runs total from the feed so we
  *  just use that and save the calculation
@@ -14,7 +14,7 @@ const { processTeam, gameTotal } = require(`../game`)
  * @param {Innings} home Array of innings for the home team
  *
  * @returns {array} [
- *  error,
+ *  error (null if no error),
  *  [innings],
  *  homeHits,
  *  homeErrors,
@@ -117,7 +117,7 @@ const saveBaseballGame = async (game, feedURL) => {
   if (error) {
     return error
   }
-  const finalKeys = [`R`, `H`, `E`]
+  const finalKeys = [`R`, `H`, `E`] // labels for team totals
   const finals = [
     [game.awayTeamFinal, awayTeamHits, awayTeamErrs],
     [game.homeTeamFinal, homeTeamHits, homeTeamErrs]
