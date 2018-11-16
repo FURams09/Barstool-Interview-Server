@@ -6,9 +6,7 @@ const BaseballGame = require(`../db/baseball-game`)
 const Logger = require(`../logger`)
 
 /**
- * Gets the full game data from all games stored in 
- * db. Here you would eventually want to add some filtering
- * if dealing with more than two games
+ * Gets the bare minimum data necessary for building the inning selector.
  *
  * This would also be where I'd impliment a caching layer by
  */
@@ -20,7 +18,11 @@ router.get(`/`, async (req, res) => {
     res.status(500).send(games)
     return
   }
-  res.send(games)
+
+  const payload = games.map(game => {
+    return {_id: game._id, currentPeriod: game.currentPeriod}
+  });
+  res.send(payload)
 })
 
 /**
