@@ -1,3 +1,5 @@
+require(`dotenv`).config() // needed to use variables defined in the .env file
+
 // HTTP Server
 const express = require(`express`)
 const BodyParser = require(`body-parser`)
@@ -9,8 +11,8 @@ const morgan = require(`morgan`)
 // Database
 const mongoose = require(`mongoose`)
 
-require(`dotenv`).config() // needed to use variables defined in the .env file
 // Barstool Code
+
 const BaseballRoutes = require(`./routes/baseball`) // Express Router middleware
 const { RefreshAllData } = require(`./utility`) // Refresh the Mongo database from the list of sources.
 
@@ -40,7 +42,7 @@ const startServer = () => {
         console.log(`Error refreshing all feeds. See logs for more details.`)
       }
     } else {
-      console.log(`Skipping DataRefresh`)
+      console.log(`Skipping Data Refresh`)
     }
     console.log(`Listening on Port ${process.env.PORT}`)
   })

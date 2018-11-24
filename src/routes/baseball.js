@@ -20,8 +20,8 @@ router.get(`/`, async (req, res) => {
   }
 
   const payload = games.map(game => {
-    return {_id: game._id, currentPeriod: game.currentPeriod}
-  });
+    return { _id: game._id, currentPeriod: game.currentPeriod }
+  })
   res.send(payload)
 })
 

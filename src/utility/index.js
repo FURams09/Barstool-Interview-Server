@@ -9,10 +9,11 @@ const feeds = [
 ]
 
 /**
-* Makes request to a url and processes the response
-* to base game information removing any nesting 
-* above the game in the response object.
-*/
+ * Takes a URL to a feed of game data and returns the game's data
+ * @param {string} feedURL URL to request game data from
+ *
+ * @returns raw game feed data
+ */
 const getGameFeed = async feedURL => {
   let feedFromSource = await axios.get(feedURL).catch(ex => {
     return Logger.log(ex)
@@ -20,7 +21,7 @@ const getGameFeed = async feedURL => {
   if (feedFromSource.error) {
     return feedFromSource.error
   }
-  // if there isn't a game object, the data is the game object
+  // if there isn't a game property, the data is the game object
   let game = feedFromSource.data.game || feedFromSource.data
   if (game) {
     return game
@@ -33,15 +34,13 @@ exports.GetGameFeed = getGameFeed
 
 /**
  * Returns true if all feeds were successfully processed and saved to Mongoose
- * Returns false if any of the updates fail. Successful updates will not be rolled back.
+ * Returns false if any of the updates fail. Successful updates will not be
+ * rolled back.
  */
 exports.RefreshAllData = async () => {
-  // Clear out old data when the app starts. In Production it would likely make more sense to just update
-  // existing game data, but with just two static feeds it made more sense to just recreate the data every 
   await BaseballGame.deleteMany({})
 
   const feedUpdates = feeds.map(async feed => {
-    // if there isn't a game object, the data is the game object
     let game = await getGameFeed(feed)
     if (game) {
       return refreshData(game, feed)
@@ -75,7 +74,7 @@ const refreshData = async (game, feed) => {
       )
       break
     case `NFL`:
-      // This is the general workflow for processing different sports' feeds
+      // This is the general flow for processing different sports' feeds
       // saveResults = await saveFootballGame(game).catch(ex=> {
       //  Logger.log(ex);
       // })

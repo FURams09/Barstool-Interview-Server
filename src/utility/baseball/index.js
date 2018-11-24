@@ -1,6 +1,6 @@
 const Logger = require(`../../logger`) // Common logging utility
-const BaseballGame = require(`../../db/baseball-game`) // Baseball game Mongoose Schema
-const { processTeam, gameTotal } = require(`../game`) // common utilities for processing games in any sport.
+const BaseballGame = require(`../../db/baseball-game`)
+const { processTeam, gameTotal } = require(`../game`)
 
 /**
  *  Takes in a home and away teams runs, errors, and hits for each inning
