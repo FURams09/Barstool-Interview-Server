@@ -37,7 +37,7 @@ yarn start
 - server.js
     entry point to the project
 
-[Link to Front End Scoreboard](https://github.com/FURams09/barstool-fullstack-server)
+[Link to Front End Scoreboard](https://github.com/FURams09/barstool-fullstack-scoreboard)
 
 
 [LinkedIn Profile](https://www.linkedin.com/in/gregory-padin-7b462412b/)
